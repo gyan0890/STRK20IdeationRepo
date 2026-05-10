@@ -1,0 +1,43 @@
+# Secrets — never commit
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Database & model artefacts
+*.db
+*.db-shm
+*.db-wal
+backend/rag/vectorstore/
+backend/rag/*.faiss
+backend/rag/*.pkl
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+nohup.out
+/tmp/
+
+# Docker
+*.override.yml
