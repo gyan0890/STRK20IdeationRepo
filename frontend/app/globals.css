@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg:         #0d0d0d;
+  --color-card:       #141414;
+  --color-border:     #262626;
+  --color-accent:     #fa4300;
+  --color-accent-dim: rgba(250,67,0,0.12);
+  --color-text:       #fafafa;
+  --color-muted:      #888888;
+  --color-dim:        #616161;
+  --color-success:    #00cc88;
+  --color-warning:    #fee252;
+  --color-danger:     #ff4444;
+  --color-purple:     #8b5cf6;
+  --color-blue:       #3b82f6;
+  --color-teal:       #14b8a6;
+  --color-coral:      #f97316;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "GT America Mono Trial Rg", "JetBrains Mono", monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0d0d0d;
+  color: #fafafa;
+  font-family: var(--font-sans);
+}
+
+/* Subtle dot grid — matches strk20.starknet.io texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(250,67,0,0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#__next, main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Score ring animation */
+@keyframes dash {
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-dash {
+  animation: dash 1.4s ease-in-out forwards;
+}
+
+/* Pulse for analyzing state */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(250,67,0,0.3); }
+  50%       { opacity: 0.8; box-shadow: 0 0 0 8px rgba(250,67,0,0); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}
