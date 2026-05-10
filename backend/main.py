@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,9 +18,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="STRK20 Pitch Analyzer", version="1.0.0", lifespan=lifespan)
 
+# Read extra allowed origins from .env (comma-separated)
+_extra = os.getenv("ALLOWED_ORIGINS", "")
+_origins = [
+    "http://localhost:3000",
+    "https://*.vercel.app",
+] + [o.strip() for o in _extra.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://*.vercel.app"],
+    allow_origins=_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
