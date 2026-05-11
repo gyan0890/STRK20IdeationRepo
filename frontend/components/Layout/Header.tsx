@@ -15,7 +15,7 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <span className="font-black text-[#fafafa] tracking-tight text-lg leading-none">strk20</span>
             <span className="text-[#262626] font-light text-lg leading-none">/</span>
-            <span className="text-[#888888] text-sm font-medium leading-none">pitch analyzer</span>
+            <span className="text-[#888888] text-sm font-medium leading-none">analyze or submit your pitch</span>
           </div>
         </div>
         <a
