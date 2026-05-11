@@ -7,7 +7,7 @@ import Footer from "@/components/Layout/Footer";
 import StepIndicator from "@/components/StepIndicator";
 import AgentProgress from "@/components/AgentProgress";
 import ScoreDashboard from "@/components/ScoreDashboard";
-import SubmitForm from "@/components/SubmitForm";
+import DirectSubmitForm from "@/components/DirectSubmitForm";
 import { getPitchStatus, getPitchResult } from "@/lib/api";
 import type { PitchStatusResponse, PitchResultResponse, AgentId, AgentStatusItem } from "@/lib/types";
 
@@ -101,10 +101,12 @@ export default function AnalyzePage({ params }: { params: Promise<{ id: string }
         {step === "submit" && result && (
           <div className="space-y-6">
             <div className="text-center mb-2">
-              <h2 className="text-2xl font-black text-[#fafafa] mb-2">Almost there</h2>
-              <p className="text-[#888888]">Your pitch scored <strong className="text-[#fa4300]">{result.overall_score}/10</strong>. Leave your contact for follow-up.</p>
+              <h2 className="text-2xl font-black text-[#fafafa] mb-2">Send your pitch</h2>
+              <p className="text-[#888888]">Your pitch scored <strong className="text-[#fa4300]">{result.overall_score}/10</strong>. Share your deck or description with the team.</p>
             </div>
-            <SubmitForm pitchId={id} onDone={(ref) => { setReference(ref); setStep("done"); }} />
+            <div className="bg-[#141414] border border-[#262626] rounded-2xl p-6">
+              <DirectSubmitForm onDone={(ref) => { setReference(ref); setStep("done"); }} />
+            </div>
             <div className="text-center">
               <button onClick={() => setStep("results")} className="text-[#616161] text-sm hover:text-[#888888] underline transition-colors">
                 ← Back to results
