@@ -1,7 +1,9 @@
 import uuid
 import random
 import string
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+import base64
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,66 +16,63 @@ from services.telegram import (
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
 
+
 def _ref() -> str:
     return "STRK-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 
-class DirectSubmitResponse:
-    pass
+class DirectSubmitRequest(BaseModel):
+    name: str
+    pitch_text: str = ""
+    contact_type: str
+    contact_value: str
+    file_name: Optional[str] = None
+    file_base64: Optional[str] = None
+    file_content_type: Optional[str] = None
 
-from pydantic import BaseModel
-class DirectSubmitResponseModel(BaseModel):
+
+class DirectSubmitResponse(BaseModel):
     reference: str
     status: str
 
 
-@router.post("/submit", response_model=DirectSubmitResponseModel)
-async def direct_submit(
-    name:          str            = Form(...),
-    contact_type:  str            = Form(...),
-    contact_value: str            = Form(...),
-    pitch_text:    str            = Form(""),
-    file:          Optional[UploadFile] = File(None),
-    db: AsyncSession = Depends(get_db),
-):
+@router.post("/submit", response_model=DirectSubmitResponse)
+async def direct_submit(body: DirectSubmitRequest, db: AsyncSession = Depends(get_db)):
     reference = _ref()
 
-    # Determine stored pitch text
-    stored_pitch = pitch_text.strip()
-    if file and file.filename:
-        stored_pitch = stored_pitch or f"[File: {file.filename}]"
+    stored_pitch = body.pitch_text.strip()
+    if body.file_name and not stored_pitch:
+        stored_pitch = f"[File: {body.file_name}]"
 
     record = DirectSubmissionRecord(
         submission_id=str(uuid.uuid4()),
         reference=reference,
-        name=name.strip(),
-        contact_type=contact_type,
-        contact_value=contact_value.strip(),
+        name=body.name.strip(),
+        contact_type=body.contact_type,
+        contact_value=body.contact_value.strip(),
         pitch_text=stored_pitch,
         source="web",
     )
     db.add(record)
     await db.commit()
 
-    # Always send the header + text parts
-    header_parts = format_direct_submission(
-        name=name,
-        contact_type=contact_type,
-        contact_value=contact_value,
+    parts = format_direct_submission(
+        name=body.name,
+        contact_type=body.contact_type,
+        contact_value=body.contact_value,
         pitch_preview=stored_pitch,
         reference=reference,
     )
-    await send_telegram_messages(header_parts)
+    await send_telegram_messages(parts)
 
-    # If a file was uploaded, send it to TG
-    if file and file.filename:
-        file_bytes = await file.read()
-        caption = f"📎 <b>{file.filename}</b>\nRef: <code>{reference}</code>"
+    if body.file_base64 and body.file_name:
+        file_bytes = base64.b64decode(body.file_base64)
+        caption = f"📎 <b>{body.file_name}</b>\nRef: <code>{reference}</code>"
         await send_telegram_file_upload(
-            filename=file.filename,
+            filename=body.file_name,
             file_bytes=file_bytes,
-            content_type=file.content_type or "application/octet-stream",
+            content_type=body.file_content_type or "application/octet-stream",
             caption=caption,
         )
 
-    return DirectSubmitResponseModel(reference=reference, status="submitted")
+    return DirectSubmitResponse(reference=reference, status="submitted")

@@ -42,6 +42,18 @@ export async function submitContact(pitchId: string, data: SubmitRequest): Promi
   return res.json();
 }
 
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      resolve(dataUrl.split(",")[1]); // strip the "data:...;base64," prefix
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function submitDirect(params: {
   name: string;
   pitch_text: string;
@@ -49,17 +61,28 @@ export async function submitDirect(params: {
   contact_value: string;
   file?: File | null;
 }): Promise<DirectSubmitResponse> {
-  const fd = new FormData();
-  fd.append("name", params.name);
-  fd.append("contact_type", params.contact_type);
-  fd.append("contact_value", params.contact_value);
-  fd.append("pitch_text", params.pitch_text);
-  if (params.file) fd.append("file", params.file);
+  let file_base64: string | undefined;
+  let file_name: string | undefined;
+  let file_content_type: string | undefined;
+
+  if (params.file) {
+    file_base64 = await fileToBase64(params.file);
+    file_name = params.file.name;
+    file_content_type = params.file.type || "application/octet-stream";
+  }
 
   const res = await fetch(`${BASE}/telegram/submit`, {
     method: "POST",
-    body: fd,
-    // Do NOT set Content-Type — browser sets it with the correct multipart boundary
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: params.name,
+      pitch_text: params.pitch_text,
+      contact_type: params.contact_type,
+      contact_value: params.contact_value,
+      file_name,
+      file_base64,
+      file_content_type,
+    }),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
