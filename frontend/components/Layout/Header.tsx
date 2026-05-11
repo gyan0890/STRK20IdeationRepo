@@ -1,10 +1,11 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Header() {
   return (
     <header className="border-b border-[#262626] bg-[#0d0d0d]/90 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <Image
             src="/starknet-logo.png"
             alt="Starknet"
@@ -17,7 +18,7 @@ export default function Header() {
             <span className="text-[#262626] font-light text-lg leading-none">/</span>
             <span className="text-[#888888] text-sm font-medium leading-none">analyze or submit your pitch</span>
           </div>
-        </div>
+        </Link>
         <a
           href="https://strk20.starknet.io/"
           target="_blank"
