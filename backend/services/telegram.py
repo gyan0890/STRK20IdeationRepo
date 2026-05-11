@@ -36,7 +36,7 @@ def format_analysis_submission(name: str, contact_type: str, contact_value: str,
 
 def format_direct_submission(name: str, contact_type: str, contact_value: str,
                               pitch_preview: str, reference: str) -> str:
-    preview = pitch_preview[:400] + ("…" if len(pitch_preview) > 400 else "")
+    preview = pitch_preview[:3800] + ("…" if len(pitch_preview) > 3800 else "")
     return (
         f"📬 <b>Direct Pitch Submission</b>\n"
         f"Reference: <code>{reference}</code>\n\n"
