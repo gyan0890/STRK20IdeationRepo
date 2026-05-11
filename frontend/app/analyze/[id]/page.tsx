@@ -9,6 +9,7 @@ import AgentProgress from "@/components/AgentProgress";
 import ScoreDashboard from "@/components/ScoreDashboard";
 import DirectSubmitForm from "@/components/DirectSubmitForm";
 import { getPitchStatus, getPitchResult } from "@/lib/api";
+import { downloadResultsAsPDF } from "@/lib/downloadPDF";
 import type { PitchStatusResponse, PitchResultResponse, AgentId, AgentStatusItem } from "@/lib/types";
 
 type Step = "analyzing" | "results" | "submit" | "done";
@@ -85,12 +86,20 @@ export default function AnalyzePage({ params }: { params: Promise<{ id: string }
             <ScoreDashboard result={result} />
             <div className="bg-[#141414] border border-[#262626] rounded-2xl p-6 text-center space-y-3">
               <p className="text-[#888888] text-sm">Like what you see? Send your pitch directly to the Starknet Foundation team.</p>
-              <button
-                onClick={() => setStep("submit")}
-                className="bg-[#fa4300] text-[#0d0d0d] font-bold px-10 py-4 rounded-xl hover:bg-[#fb5a17] active:scale-[0.98] transition-all text-sm w-full sm:w-auto"
-              >
-                Submit to Starknet Foundation →
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => setStep("submit")}
+                  className="bg-[#fa4300] text-[#0d0d0d] font-bold px-10 py-4 rounded-xl hover:bg-[#fb5a17] active:scale-[0.98] transition-all text-sm"
+                >
+                  Submit to Starknet Foundation →
+                </button>
+                <button
+                  onClick={() => downloadResultsAsPDF(result)}
+                  className="bg-[#141414] text-[#fafafa] font-bold px-10 py-4 rounded-xl border border-[#262626] hover:border-[#444] hover:bg-[#1a1a1a] active:scale-[0.98] transition-all text-sm"
+                >
+                  ↓ Download Results
+                </button>
+              </div>
               <p className="text-[#616161] text-xs">
                 We read every submission. Highly-scored pitches get a follow-up.
               </p>
