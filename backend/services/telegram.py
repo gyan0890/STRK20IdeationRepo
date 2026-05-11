@@ -59,6 +59,29 @@ async def send_telegram_document(file_id: str, caption: str = "") -> bool:
         return False
 
 
+async def send_telegram_file_upload(
+    filename: str,
+    file_bytes: bytes,
+    content_type: str,
+    caption: str = "",
+) -> bool:
+    """Upload a file directly to the SNF channel (for web form submissions)."""
+    token   = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    if not token or not chat_id:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            r = await client.post(
+                f"https://api.telegram.org/bot{token}/sendDocument",
+                data={"chat_id": chat_id, "caption": caption[:1024], "parse_mode": "HTML"},
+                files={"document": (filename, file_bytes, content_type)},
+            )
+            return r.status_code == 200
+    except Exception:
+        return False
+
+
 def _chunks(text: str) -> list[str]:
     return [text[i:i + _CHUNK] for i in range(0, max(len(text), 1), _CHUNK)]
 

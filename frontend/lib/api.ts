@@ -1,7 +1,7 @@
 import type {
   PitchStatusResponse, PitchResultResponse,
   SubmitRequest, SubmitResponse,
-  DirectSubmitRequest, DirectSubmitResponse,
+  DirectSubmitResponse,
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
@@ -42,11 +42,24 @@ export async function submitContact(pitchId: string, data: SubmitRequest): Promi
   return res.json();
 }
 
-export async function submitDirect(data: DirectSubmitRequest): Promise<DirectSubmitResponse> {
+export async function submitDirect(params: {
+  name: string;
+  pitch_text: string;
+  contact_type: string;
+  contact_value: string;
+  file?: File | null;
+}): Promise<DirectSubmitResponse> {
+  const fd = new FormData();
+  fd.append("name", params.name);
+  fd.append("contact_type", params.contact_type);
+  fd.append("contact_value", params.contact_value);
+  fd.append("pitch_text", params.pitch_text);
+  if (params.file) fd.append("file", params.file);
+
   const res = await fetch(`${BASE}/telegram/submit`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: fd,
+    // Do NOT set Content-Type — browser sets it with the correct multipart boundary
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
