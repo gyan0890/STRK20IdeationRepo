@@ -24,7 +24,7 @@ from telegram.ext import (
 )
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-from services.telegram import send_telegram, format_direct_submission
+from services.telegram import send_telegram_messages, send_telegram_document, format_direct_submission
 from services.db import DirectSubmissionRecord
 
 logging.basicConfig(level=logging.INFO)
@@ -53,9 +53,9 @@ async def receive_pitch(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     msg = update.message
 
     if msg.document:
-        # Store file_id so we can retrieve it; extract text later if needed
         ctx.user_data["pitch_text"] = f"[File: {msg.document.file_name}] {msg.caption or ''}"
         ctx.user_data["file_id"] = msg.document.file_id
+        ctx.user_data["file_name"] = msg.document.file_name
     elif msg.text:
         ctx.user_data["pitch_text"] = msg.text
     else:
@@ -74,6 +74,8 @@ async def receive_contact(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
     contact_value = update.message.text.strip()
     pitch_text    = ctx.user_data.get("pitch_text", "")
     tg_name       = ctx.user_data.get("tg_username", "unknown")
+    file_id       = ctx.user_data.get("file_id")
+    file_name     = ctx.user_data.get("file_name", "attachment")
     reference     = _ref()
 
     contact_type = (
@@ -95,14 +97,29 @@ async def receive_contact(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
         session.add(record)
         await session.commit()
 
-    msg = format_direct_submission(
-        name=tg_name,
-        contact_type=contact_type,
-        contact_value=contact_value,
-        pitch_preview=pitch_text,
-        reference=reference,
-    )
-    await send_telegram(msg)
+    if file_id:
+        # Send header as text, then forward the actual file
+        header_parts = format_direct_submission(
+            name=tg_name,
+            contact_type=contact_type,
+            contact_value=contact_value,
+            pitch_preview=pitch_text,
+            reference=reference,
+        )
+        await send_telegram_messages(header_parts)
+        await send_telegram_document(
+            file_id,
+            caption=f"📎 <b>{file_name}</b>\nRef: <code>{reference}</code>",
+        )
+    else:
+        parts = format_direct_submission(
+            name=tg_name,
+            contact_type=contact_type,
+            contact_value=contact_value,
+            pitch_preview=pitch_text,
+            reference=reference,
+        )
+        await send_telegram_messages(parts)
 
     await update.message.reply_text(
         f"✅ Submitted! Your reference is <code>{reference}</code>\n\n"
